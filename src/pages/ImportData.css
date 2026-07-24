@@ -1,0 +1,87 @@
+.import-instructions-box {
+  background-color: var(--sidebar-bg);
+  border: 1px solid #3b82f6; /* Blue border matching screenshot */
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 30px;
+}
+
+.instruction-title {
+  color: var(--accent-color);
+  font-size: 1.25rem;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.instruction-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0 0 20px 0;
+}
+
+.instruction-list li {
+  color: var(--text-secondary); /* Dynamic text color for visibility in both themes */
+  margin-bottom: 6px;
+  font-size: 0.95rem;
+}
+
+.instruction-subtitle {
+  color: var(--accent-color);
+  font-size: 1.05rem;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.field-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0 0 20px 0;
+}
+
+.field-list li {
+  color: #f59e0b; /* Distinct orange/gold for fields */
+  margin-bottom: 6px;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.instruction-note {
+  color: var(--accent-color);
+  font-weight: bold;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.import-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.import-actions label {
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.green-btn {
+  background-color: #22c55e !important;
+  color: white !important;
+  font-weight: bold !important;
+}
+
+.green-btn:hover {
+  background-color: #16a34a !important;
+}
+
+/* Ensure the yellow select matches the screenshot width */
+.import-actions .yellow-select {
+  width: 250px;
+  cursor: pointer;
+  background-color: var(--accent-color) !important;
+  color: #000 !important;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-weight: 500;
+}
