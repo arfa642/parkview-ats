@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { MdLockOutline, MdPersonOutline } from 'react-icons/md';
+import logoDark from '../assets/pvatsld.png';
 import './Login.css';
 
 export default function Login() {
@@ -39,7 +40,7 @@ export default function Login() {
       <div className="login-card">
         <div className="login-header">
           <div className="login-logo-container">
-            <img src="/pvatsld.png" alt="PVC ATS Logo" className="login-logo" />
+            <img src={logoDark} alt="PVC ATS Logo" className="login-logo" />
           </div>
           <h2>Welcome Back</h2>
           <p>Please sign in to your account</p>
