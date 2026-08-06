@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useAssets } from '../context/AssetContext';
 import { useToast } from '../context/ToastContext';
 import { MdEdit, MdDelete, MdAdd, MdClose, MdVisibility, MdVisibilityOff } from 'react-icons/md';
 
 export default function UserManagement() {
   const { currentUser, users, addUser, updateUser, deleteUser, hasEditPermission } = useAuth();
+  const { addAuditLog } = useAssets();
   const { addToast } = useToast();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -52,6 +54,7 @@ export default function UserManagement() {
         return;
       }
       updateUser(editingUser.id, formData);
+      addAuditLog('Updated User Account', `Updated access/role for user '${formData.username}' (${formData.name}) to '${formData.role}'`);
       addToast("User updated successfully.", "success");
     } else {
       // Check if username exists
@@ -60,6 +63,7 @@ export default function UserManagement() {
         return;
       }
       addUser(formData);
+      addAuditLog('Created User Account', `Created account '${formData.username}' (${formData.name}) with role '${formData.role}'`);
       addToast("User added successfully.", "success");
     }
     closeModal();
@@ -72,6 +76,7 @@ export default function UserManagement() {
     }
     if (window.confirm("Are you sure you want to delete this user?")) {
       deleteUser(id);
+      addAuditLog('Deleted User Account', `Deleted user account ID ${id}`);
       addToast("User deleted.", "success");
     }
   };

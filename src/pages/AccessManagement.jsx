@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useAssets } from '../context/AssetContext';
 import { useToast } from '../context/ToastContext';
 import { MdClose, MdSecurity } from 'react-icons/md';
 
@@ -10,6 +11,7 @@ const VIEW_ONLY_PAGES = ['Dashboard', 'Settings', 'Access'];
 
 export default function AccessManagement() {
   const { currentUser, permissions, updatePermissions, users } = useAuth();
+  const { addAuditLog } = useAssets();
   const { addToast } = useToast();
   
   const [selectedRole, setSelectedRole] = useState(null);
@@ -75,6 +77,7 @@ export default function AccessManagement() {
 
   const handleSave = () => {
     updatePermissions(selectedRole, modalPermissions);
+    addAuditLog('Updated Access Permissions', `Updated page access & permissions for role '${selectedRole}'`);
     addToast(`Permissions updated for ${selectedRole}`, "success");
     closeModal();
   };
