@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
+import DeveloperCredit from './DeveloperCredit';
 import {
   MdSpeed,
   MdLaptop,
@@ -161,11 +162,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
               </button>
             </div>
 
-            <div style={{ textAlign: 'center', marginTop: '4px', marginBottom: '4px', opacity: 0.8 }}>
-              <p style={{ margin: 0, fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Developed By</p>
-              <p style={{ margin: '2px 0', fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: '600' }}>Muhammad Arfa</p>
-              <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-secondary)' }}>IT Intern @ PVC</p>
-            </div>
+            <DeveloperCredit />
 
             <div style={{ display: 'flex', gap: '8px' }}>
               <button
