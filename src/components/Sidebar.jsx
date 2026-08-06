@@ -124,7 +124,9 @@ export default function Sidebar({ isOpen, setIsOpen }) {
 
         <nav className="sidebar-nav">
           {navItems.filter(item => {
-            const allowed = permissions?.[currentUser?.role]?.allowedPages || [];
+            if (currentUser?.role === 'Developer' || currentUser?.role === 'Executive') return true;
+            const allowed = permissions?.[currentUser?.role]?.allowedPages;
+            if (!allowed || allowed.length === 0) return true;
             return allowed.includes(item.name);
           }).map((item) => (
             <NavLink

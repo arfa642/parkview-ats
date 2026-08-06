@@ -196,7 +196,7 @@ app.put('/api/assets/:id', requireDb, async (req, res) => {
 });
 
 app.delete('/api/assets', requireDb, async (req, res) => {
-    const { ids } = req.body;
+    const { ids } = req.body || {};
     if (!ids || !Array.isArray(ids)) return res.status(400).send({ message: 'Invalid payload' });
     try {
         const placeholders = ids.map(() => '?').join(',');
@@ -267,7 +267,7 @@ app.put('/api/employees/:id', requireDb, async (req, res) => {
 });
 
 app.delete('/api/employees', requireDb, async (req, res) => {
-    const { ids } = req.body;
+    const { ids } = req.body || {};
     if (!ids || !Array.isArray(ids)) return res.status(400).send({ message: 'Invalid payload' });
     try {
         const placeholders = ids.map(() => '?').join(',');
@@ -345,7 +345,7 @@ app.put('/api/assignments/:id', requireDb, async (req, res) => {
 });
 
 app.delete('/api/assignments', requireDb, async (req, res) => {
-    const { ids } = req.body;
+    const { ids } = req.body || {};
     if (!ids || !Array.isArray(ids)) return res.status(400).send({ message: 'Invalid payload' });
     try {
         const placeholders = ids.map(() => '?').join(',');
@@ -417,7 +417,7 @@ app.put('/api/transfers/:id', requireDb, async (req, res) => {
 });
 
 app.delete('/api/transfers', requireDb, async (req, res) => {
-    const { ids } = req.body;
+    const { ids } = req.body || {};
     if (!ids || !Array.isArray(ids)) return res.status(400).send({ message: 'Invalid payload' });
     try {
         const placeholders = ids.map(() => '?').join(',');
@@ -470,7 +470,7 @@ app.put('/api/returns/:id', requireDb, async (req, res) => {
 });
 
 app.delete('/api/returns', requireDb, async (req, res) => {
-    const { ids } = req.body;
+    const { ids } = req.body || {};
     if (!ids || !Array.isArray(ids)) return res.status(400).send({ message: 'Invalid payload' });
     try {
         const placeholders = ids.map(() => '?').join(',');
@@ -526,7 +526,7 @@ app.put('/api/users/:id', requireDb, async (req, res) => {
 });
 
 app.delete('/api/users', requireDb, async (req, res) => {
-    const { ids } = req.body;
+    const { ids } = req.body || {};
     if (!ids || !Array.isArray(ids)) return res.status(400).send({ message: 'Invalid payload' });
     try {
         const placeholders = ids.map(() => '?').join(',');

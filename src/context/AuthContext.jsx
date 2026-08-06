@@ -45,17 +45,9 @@ export const AuthProvider = ({ children }) => {
           }
         }
         
-        // Force critical pages for admins in case they were added after cached data was saved
-        if (merged['Executive']) {
-          if (!merged['Executive'].allowedPages.includes('Users')) merged['Executive'].allowedPages.push('Users');
-          if (!merged['Executive'].editPages.includes('Users')) merged['Executive'].editPages.push('Users');
-          if (!merged['Executive'].allowedPages.includes('Access')) merged['Executive'].allowedPages.push('Access');
-        }
-        if (merged['Developer']) {
-          if (!merged['Developer'].allowedPages.includes('Users')) merged['Developer'].allowedPages.push('Users');
-          if (!merged['Developer'].editPages.includes('Users')) merged['Developer'].editPages.push('Users');
-          if (!merged['Developer'].allowedPages.includes('Access')) merged['Developer'].allowedPages.push('Access');
-        }
+        // Force full page permissions for Executive and Developer
+        merged['Executive'] = { allowedPages: [...ALL_PAGES], editPages: [...ALL_PAGES] };
+        merged['Developer'] = { allowedPages: [...ALL_PAGES], editPages: [...ALL_PAGES] };
         
         setPermissions(merged);
         // Save the patched permissions back to storage
