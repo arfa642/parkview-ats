@@ -4,8 +4,14 @@ import { useAuth } from '../context/AuthContext';
 import { MdHistory } from 'react-icons/md';
 
 export default function AuditLog() {
-  const { auditLogs } = useAssets();
+  const { auditLogs, clearAuditLogs } = useAssets();
   const { currentUser } = useAuth();
+
+  const handleClearLogs = () => {
+    if (window.confirm("Are you sure you want to completely clear ALL system audit logs? This action cannot be undone.")) {
+      clearAuditLogs();
+    }
+  };
 
   // Sort logs by date descending (newest first)
   const sortedLogs = [...auditLogs].sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -14,8 +20,19 @@ export default function AuditLog() {
     <div className="page-content">
       <div className="page-header">
         <h1>System Audit Log</h1>
-        <div style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', padding: '8px 16px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <MdHistory size={18} /> {sortedLogs.length} Events Recorded
+        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+          <div style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', padding: '8px 16px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <MdHistory size={18} /> {sortedLogs.length} Events Recorded
+          </div>
+          {sortedLogs.length > 0 && (
+            <button 
+              onClick={handleClearLogs}
+              className="btn"
+              style={{ background: '#ef4444', color: 'white', padding: '8px 16px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontWeight: '500' }}
+            >
+              Clear All Logs
+            </button>
+          )}
         </div>
       </div>
 

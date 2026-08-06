@@ -5,7 +5,8 @@ import { MdDelete, MdEdit, MdAdd, MdClose, MdCheckBox } from 'react-icons/md';
 
 export default function Assets() {
   const { assets, addAsset, deleteMultipleAssets, updateAsset } = useAssets();
-  const { isReadOnly } = useAuth();
+  const { hasEditPermission } = useAuth();
+  const canEdit = hasEditPermission('Assets');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
   const [editingId, setEditingId] = useState(null);
@@ -130,7 +131,7 @@ export default function Assets() {
     <div className="page-content assets-page">
       <div className="page-header">
         <h1>Asset Inventory</h1>
-        {!isReadOnly && (
+        {canEdit && (
           <div className="header-actions">
             {isSelectionMode && (
               <button 
@@ -187,7 +188,7 @@ export default function Assets() {
               )}
               <th>ID</th>
               <th>Serial No.</th>
-              <th>Asset Name</th>
+              <th>Category</th>
               <th>Brand & Model</th>
               <th>Specs</th>
               <th>Status</th>
@@ -195,7 +196,7 @@ export default function Assets() {
             </tr>
           </thead>
           <tbody>
-            {assets.map((asset) => (
+            {assets.map((asset, index) => (
               <tr 
                 key={asset.id} 
                 className={selectedIds.includes(asset.id) ? 'selected-row' : ''}
@@ -211,10 +212,10 @@ export default function Assets() {
                     />
                   </td>
                 )}
-                <td>{asset.id}</td>
+                <td>{index + 1}</td>
                 <td>{asset.tag}</td>
                 <td style={{textTransform: 'capitalize'}}>{asset.name}</td>
-                <td>{asset.brand}</td>
+                <td>{asset.model || asset.brand}</td>
                 <td>{asset.specs}</td>
                 <td>{asset.status}</td>
                 <td>{asset.location}</td>
@@ -245,14 +246,14 @@ export default function Assets() {
                   <input type="text" name="tag" value={formData.tag} onChange={handleInputChange} required />
                 </div>
                 <div className="form-group">
-                  <label>Asset Name</label>
+                  <label>Category</label>
                   <select name="name" value={formData.name} onChange={handleInputChange}>
                     <option value="Laptop">Laptop</option>
-                    <option value="pc">PC</option>
-                    <option value="led">LED</option>
-                    <option value="printer">Printer</option>
-                    <option value="scanner">Scanner</option>
-                    <option value="photocopier">Photocopier</option>
+                    <option value="PC">PC</option>
+                    <option value="Mobile Phone">Mobile Phone</option>
+                    <option value="Monitor">Monitor</option>
+                    <option value="Printer">Printer</option>
+                    <option value="Equipment">Equipment</option>
                     <option value="Misc.">Misc.</option>
                   </select>
                 </div>

@@ -6,12 +6,12 @@ import logoDark from '../assets/pvatsld.png';
 import './Login.css';
 
 export default function Login() {
-  const [role, setRole] = useState('executive');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState(''); 
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
-  const { login } = useAuth();
+  const { login, users } = useAuth();
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
@@ -20,7 +20,7 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const result = await login(role, password);
+      const result = await login(username, password);
       if (result.success) {
         navigate('/');
       } else {
@@ -52,15 +52,16 @@ export default function Login() {
           <div className="input-group">
             <span className="input-icon"><MdPersonOutline /></span>
             <select 
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               required
             >
-              <option value="" disabled>Select Role</option>
-              <option value="developer">Developer</option>
-              <option value="hr">HR</option>
-              <option value="executive">Executive</option>
-              <option value="ceo">CEO</option>
+              <option value="" disabled>Select User Account</option>
+              {users && users.map(user => (
+                <option key={user.id} value={user.username}>
+                  {user.name} ({user.role})
+                </option>
+              ))}
             </select>
           </div>
 

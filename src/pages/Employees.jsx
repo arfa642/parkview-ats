@@ -5,8 +5,8 @@ import { MdDelete, MdEdit, MdAdd, MdClose, MdSearch } from 'react-icons/md';
 
 export default function Employees() {
   const { employees, addEmployee, updateEmployee, deleteMultipleEmployees } = useAssets();
-  const { isReadOnly, currentUser } = useAuth();
-  const canManageEmployees = !isReadOnly || currentUser?.role === 'HR';
+  const { hasEditPermission } = useAuth();
+  const canManageEmployees = hasEditPermission('Employees');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
   const [editingId, setEditingId] = useState(null);
@@ -80,7 +80,7 @@ export default function Employees() {
     if (empToEdit) {
       setEditingId(empToEdit.id);
       setFormData({
-        empId: empToEdit.empId || '',
+        empId: empToEdit.empId || empToEdit.id || '',
         name: empToEdit.name || '',
         department: empToEdit.department || 'Accounts',
         designation: empToEdit.designation || ''
@@ -206,7 +206,7 @@ export default function Employees() {
                     />
                   </td>
                 )}
-                <td>{emp.empId}</td>
+                <td>{emp.empId || emp.id}</td>
                 <td>{emp.name}</td>
                 <td>{emp.department}</td>
                 <td>{emp.designation}</td>

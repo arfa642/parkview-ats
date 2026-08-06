@@ -138,75 +138,111 @@ export default function Reports() {
 
     switch(reportType) {
       case 'All Assets':
-        headers = ['Id', 'Serial No.', 'Asset Name', 'Brand & Model', 'Specs', 'Location', 'Status', 'Remarks', 'Department'];
-        renderRow = (item) => (
-          <tr key={item.reportId}>
-            <td>{item.reportId}</td>
-            <td>{item.tag}</td>
-            <td style={{textTransform: 'capitalize'}}>{item.name}</td>
-            <td>{item.brand}</td>
-            <td>{item.specs}</td>
-            <td>{item.location}</td>
-            <td>{item.status}</td>
-            <td>{item.remarks || ''}</td>
-            <td>{item.department}</td>
-          </tr>
-        );
+        headers = ['Id', 'Serial No.', 'Category', 'Brand & Model', 'Specs', 'Location', 'Status', 'Remarks', 'Department'];
+        renderRow = (item) => {
+          const bStr = item.brand || '';
+          const mStr = item.model || '';
+          const bm = bStr && mStr ? (mStr.toLowerCase().includes(bStr.toLowerCase()) ? mStr : `${bStr} ${mStr}`) : mStr || bStr || 'N/A';
+          return (
+            <tr key={item.reportId}>
+              <td>{item.reportId}</td>
+              <td>{item.tag}</td>
+              <td style={{textTransform: 'capitalize'}}>{item.name}</td>
+              <td style={{textTransform: 'capitalize'}}>{bm}</td>
+              <td>{item.specs}</td>
+              <td>{item.location}</td>
+              <td>{item.status}</td>
+              <td>{item.remarks || ''}</td>
+              <td>{item.department}</td>
+            </tr>
+          );
+        };
         break;
       case 'Assignments':
-        headers = ['ID', 'Serial No.', 'Model', 'Employee', 'Date', 'Status'];
-        renderRow = (item) => (
-          <tr key={item.reportId}>
-            <td>{item.reportId}</td>
-            <td>{item.assetTag}</td>
-            <td>{item.model}</td>
-            <td>{item.employee}</td>
-            <td>{item.date}</td>
-            <td>{item.status}</td>
-          </tr>
-        );
+        headers = ['ID', 'Serial No.', 'Category', 'Brand & Model', 'Employee', 'Date', 'Status'];
+        renderRow = (item) => {
+          const matchedAsset = assets.find(a => a.tag === item.assetTag) || {};
+          const bStr = matchedAsset.brand || '';
+          const mStr = matchedAsset.model || item.model || '';
+          const bm = bStr && mStr ? (mStr.toLowerCase().includes(bStr.toLowerCase()) ? mStr : `${bStr} ${mStr}`) : mStr || bStr || 'N/A';
+          const dateStr = item.date ? new Date(item.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A';
+          return (
+            <tr key={item.reportId}>
+              <td>{item.reportId}</td>
+              <td>{item.assetTag}</td>
+              <td style={{textTransform: 'capitalize'}}>{matchedAsset.name}</td>
+              <td style={{textTransform: 'capitalize'}}>{bm}</td>
+              <td>{item.employee}</td>
+              <td>{dateStr}</td>
+              <td>{item.status}</td>
+            </tr>
+          );
+        };
         break;
       case 'Transfers':
-        headers = ['ID', 'Asset', 'Asset Name', 'Model', 'Transfer Path', 'Date'];
-        renderRow = (item) => (
-          <tr key={item.reportId}>
-            <td>{item.reportId}</td>
-            <td>{item.assetTag}</td>
-            <td style={{textTransform: 'capitalize'}}>{item.assetName}</td>
-            <td>{item.model}</td>
-            <td>{item.transferPath}</td>
-            <td>{item.date}</td>
-          </tr>
-        );
+        headers = ['ID', 'Asset', 'Category', 'Brand & Model', 'Transfer Path', 'Date'];
+        renderRow = (item) => {
+          const matchedAsset = assets.find(a => a.tag === item.assetTag) || {};
+          const bStr = matchedAsset.brand || '';
+          const mStr = matchedAsset.model || item.model || '';
+          const bm = bStr && mStr ? (mStr.toLowerCase().includes(bStr.toLowerCase()) ? mStr : `${bStr} ${mStr}`) : mStr || bStr || 'N/A';
+          const dateStr = item.date ? new Date(item.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A';
+          return (
+            <tr key={item.reportId}>
+              <td>{item.reportId}</td>
+              <td>{item.assetTag}</td>
+              <td style={{textTransform: 'capitalize'}}>{matchedAsset.name}</td>
+              <td style={{textTransform: 'capitalize'}}>{bm}</td>
+              <td>{item.transferPath}</td>
+              <td>{dateStr}</td>
+            </tr>
+          );
+        };
         break;
       case 'Returns':
-        headers = ['ID', 'Asset', 'Asset Name', 'Model', 'Employee', 'Date', 'Condition', 'Remarks'];
-        renderRow = (item) => (
-          <tr key={item.reportId}>
-            <td>{item.reportId}</td>
-            <td>{item.assetTag}</td>
-            <td style={{textTransform: 'capitalize'}}>{item.assetName}</td>
-            <td>{item.model}</td>
-            <td>{item.employee}</td>
-            <td>{item.date}</td>
-            <td>{item.condition}</td>
-            <td>{item.remarks}</td>
-          </tr>
-        );
+        headers = ['ID', 'Asset', 'Category', 'Brand & Model', 'Employee', 'Emp ID', 'Date', 'Condition', 'Remarks'];
+        renderRow = (item) => {
+          const matchedEmp = employees.find(e => e.name?.toLowerCase().trim() === item.employee?.toLowerCase().trim()) || {};
+          const matchedAsset = assets.find(a => a.tag === item.assetTag) || {};
+          const bStr = matchedAsset.brand || '';
+          const mStr = matchedAsset.model || item.model || '';
+          const bm = bStr && mStr ? (mStr.toLowerCase().includes(bStr.toLowerCase()) ? mStr : `${bStr} ${mStr}`) : mStr || bStr || 'N/A';
+          const dateStr = item.date ? new Date(item.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A';
+          return (
+            <tr key={item.reportId}>
+              <td>{item.reportId}</td>
+              <td>{item.assetTag}</td>
+              <td style={{textTransform: 'capitalize'}}>{matchedAsset.name}</td>
+              <td style={{textTransform: 'capitalize'}}>{bm}</td>
+              <td>{item.employee}</td>
+              <td>{matchedEmp.empId || matchedEmp.id || 'N/A'}</td>
+              <td>{dateStr}</td>
+              <td>{item.condition}</td>
+              <td>{item.remarks}</td>
+            </tr>
+          );
+        };
         break;
       case 'Employee Assets':
-        headers = ['ID', 'Employee', 'Department', 'Asset Tag', 'Asset Name', 'Model', 'Assign Date'];
-        renderRow = (item) => (
-          <tr key={`${item.reportId}-${item.assetTag}`}>
-            <td>{item.reportId}</td>
-            <td>{item.employeeName}</td>
-            <td>{item.department}</td>
-            <td>{item.assetTag}</td>
-            <td style={{textTransform: 'capitalize'}}>{item.assetName}</td>
-            <td>{item.model}</td>
-            <td>{item.date}</td>
-          </tr>
-        );
+        headers = ['ID', 'Employee', 'Department', 'Asset Tag', 'Category', 'Brand & Model', 'Assign Date'];
+        renderRow = (item) => {
+          const matchedAsset = assets.find(a => a.tag === item.assetTag) || {};
+          const bStr = matchedAsset.brand || '';
+          const mStr = matchedAsset.model || item.model || '';
+          const bm = bStr && mStr ? (mStr.toLowerCase().includes(bStr.toLowerCase()) ? mStr : `${bStr} ${mStr}`) : mStr || bStr || 'N/A';
+          const dateStr = item.date ? new Date(item.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A';
+          return (
+            <tr key={`${item.reportId}-${item.assetTag}`}>
+              <td>{item.reportId}</td>
+              <td>{item.employeeName}</td>
+              <td>{item.department}</td>
+              <td>{item.assetTag}</td>
+              <td style={{textTransform: 'capitalize'}}>{matchedAsset.name}</td>
+              <td style={{textTransform: 'capitalize'}}>{bm}</td>
+              <td>{dateStr}</td>
+            </tr>
+          );
+        };
         break;
       default:
         return null;
@@ -236,24 +272,58 @@ export default function Reports() {
 
     switch(reportType) {
       case 'All Assets':
-        headers = ['ID', 'Tag', 'Serial Number', 'Asset Name', 'Brand & Model', 'Specs', 'Location', 'Status', 'Remarks', 'Department'];
-        getRow = (item) => [item.reportId, item.tag, item.serialNumber, item.name, item.brand, item.specs, item.location, item.status, item.remarks || '', item.department];
+        headers = ['ID', 'Tag', 'Serial Number', 'Category', 'Brand & Model', 'Specs', 'Location', 'Status', 'Remarks', 'Department'];
+        getRow = (item) => {
+          const bStr = item.brand || '';
+          const mStr = item.model || '';
+          const bm = bStr && mStr ? (mStr.toLowerCase().includes(bStr.toLowerCase()) ? mStr : `${bStr} ${mStr}`) : mStr || bStr || 'N/A';
+          return [item.reportId, item.tag, item.serialNumber, item.name, bm, item.specs, item.location, item.status, item.remarks || '', item.department];
+        };
         break;
       case 'Assignments':
-        headers = ['ID', 'Asset Tag', 'Model', 'Employee', 'Date', 'Status'];
-        getRow = (item) => [item.reportId, item.assetTag, item.model, item.employee, item.date, item.status];
+        headers = ['ID', 'Asset Tag', 'Category', 'Brand & Model', 'Employee', 'Date', 'Status'];
+        getRow = (item) => {
+          const matchedAsset = assets.find(a => a.tag === item.assetTag) || {};
+          const bStr = matchedAsset.brand || '';
+          const mStr = matchedAsset.model || item.model || '';
+          const bm = bStr && mStr ? (mStr.toLowerCase().includes(bStr.toLowerCase()) ? mStr : `${bStr} ${mStr}`) : mStr || bStr || 'N/A';
+          const dateStr = item.date ? new Date(item.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A';
+          return [item.reportId, item.assetTag, matchedAsset.name, bm, item.employee, dateStr, item.status];
+        };
         break;
       case 'Transfers':
-        headers = ['ID', 'Asset Tag', 'Asset Name', 'Model', 'Transfer Path', 'Date'];
-        getRow = (item) => [item.reportId, item.assetTag, item.assetName, item.model, item.transferPath, item.date];
+        headers = ['ID', 'Asset Tag', 'Category', 'Brand & Model', 'Transfer Path', 'Date'];
+        getRow = (item) => {
+          const matchedAsset = assets.find(a => a.tag === item.assetTag) || {};
+          const bStr = matchedAsset.brand || '';
+          const mStr = matchedAsset.model || item.model || '';
+          const bm = bStr && mStr ? (mStr.toLowerCase().includes(bStr.toLowerCase()) ? mStr : `${bStr} ${mStr}`) : mStr || bStr || 'N/A';
+          const dateStr = item.date ? new Date(item.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A';
+          return [item.reportId, item.assetTag, matchedAsset.name, bm, item.transferPath, dateStr];
+        };
         break;
       case 'Returns':
-        headers = ['ID', 'Asset Tag', 'Asset Name', 'Model', 'Employee', 'Date', 'Condition', 'Remarks'];
-        getRow = (item) => [item.reportId, item.assetTag, item.assetName, item.model, item.employee, item.date, item.condition, item.remarks];
+        headers = ['ID', 'Asset Tag', 'Category', 'Brand & Model', 'Employee', 'Emp ID', 'Date', 'Condition', 'Remarks'];
+        getRow = (item) => {
+          const matchedEmp = employees.find(e => e.name?.toLowerCase().trim() === item.employee?.toLowerCase().trim()) || {};
+          const matchedAsset = assets.find(a => a.tag === item.assetTag) || {};
+          const bStr = matchedAsset.brand || '';
+          const mStr = matchedAsset.model || item.model || '';
+          const bm = bStr && mStr ? (mStr.toLowerCase().includes(bStr.toLowerCase()) ? mStr : `${bStr} ${mStr}`) : mStr || bStr || 'N/A';
+          const dateStr = item.date ? new Date(item.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A';
+          return [item.reportId, item.assetTag, matchedAsset.name, bm, item.employee, matchedEmp.empId || matchedEmp.id || 'N/A', dateStr, item.condition, item.remarks];
+        };
         break;
       case 'Employee Assets':
-        headers = ['ID', 'Employee Name', 'Department', 'Asset Tag', 'Asset Name', 'Model', 'Assign Date'];
-        getRow = (item) => [item.reportId, item.employeeName, item.department, item.assetTag, item.assetName, item.model, item.date];
+        headers = ['ID', 'Employee Name', 'Department', 'Asset Tag', 'Category', 'Brand & Model', 'Assign Date'];
+        getRow = (item) => {
+          const matchedAsset = assets.find(a => a.tag === item.assetTag) || {};
+          const bStr = matchedAsset.brand || '';
+          const mStr = matchedAsset.model || item.model || '';
+          const bm = bStr && mStr ? (mStr.toLowerCase().includes(bStr.toLowerCase()) ? mStr : `${bStr} ${mStr}`) : mStr || bStr || 'N/A';
+          const dateStr = item.date ? new Date(item.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A';
+          return [item.reportId, item.employeeName, item.department, item.assetTag, matchedAsset.name, bm, dateStr];
+        };
         break;
       default:
         break;

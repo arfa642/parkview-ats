@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { HashRouter, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Assets from './pages/Assets';
@@ -12,6 +12,8 @@ import Reports from './pages/Reports';
 import AuditLog from './pages/AuditLog';
 import ImportData from './pages/ImportData';
 import Settings from './pages/Settings';
+import AccessManagement from './pages/AccessManagement';
+import UserManagement from './pages/UserManagement';
 import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AssetProvider } from './context/AssetContext';
@@ -24,7 +26,7 @@ function App() {
     <AuthProvider>
       <ToastProvider>
         <AssetProvider>
-          <BrowserRouter>
+          <HashRouter>
           <Routes>
             {/* Public Route */}
             <Route path="/login" element={<Login />} />
@@ -43,10 +45,12 @@ function App() {
                 <Route path="audit-log" element={<AuditLog />} />
                 <Route path="import-data" element={<ImportData />} />
                 <Route path="settings" element={<Settings />} />
+                <Route path="users" element={<UserManagement />} />
+                <Route path="access-management" element={<AccessManagement />} />
               </Route>
             </Route>
           </Routes>
-          </BrowserRouter>
+          </HashRouter>
         </AssetProvider>
       </ToastProvider>
     </AuthProvider>

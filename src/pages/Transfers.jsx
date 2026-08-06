@@ -2,10 +2,73 @@ import React, { useState, useEffect } from 'react';
 import { useAssets } from '../context/AssetContext';
 import { useAuth } from '../context/AuthContext';
 import { MdDelete, MdEdit, MdAdd, MdClose } from 'react-icons/md';
+import Select from 'react-select';
+
+const customStyles = {
+  control: (provided) => ({
+    ...provided,
+    backgroundColor: '#1f2937', // Solid dark color
+    borderColor: '#374151',
+    color: '#f9fafb',
+    minHeight: '40px',
+    boxShadow: 'none',
+    textAlign: 'left',
+    '&:hover': {
+      borderColor: '#9ca3af'
+    }
+  }),
+  valueContainer: (provided) => ({
+    ...provided,
+    justifyContent: 'flex-start',
+    textAlign: 'left',
+    padding: '0 8px',
+  }),
+  singleValue: (provided) => ({
+    ...provided,
+    color: '#f9fafb',
+    textAlign: 'left',
+    margin: 0,
+  }),
+  menu: (provided) => ({
+    ...provided,
+    backgroundColor: '#1f2937', // Solid dark color
+    border: '1px solid #374151',
+    textAlign: 'left',
+  }),
+  menuPortal: (base) => ({ 
+    ...base, 
+    zIndex: 9999 
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    backgroundColor: state.isFocused ? '#374151' : '#1f2937', // Solid dark colors
+    color: '#f9fafb',
+    cursor: 'pointer',
+    textAlign: 'left',
+    justifyContent: 'flex-start',
+    display: 'flex',
+    alignItems: 'center',
+    '&:active': {
+      backgroundColor: '#d4af37',
+    }
+  }),
+  input: (provided) => ({
+    ...provided,
+    color: '#f9fafb',
+    textAlign: 'left',
+    margin: 0,
+  }),
+  placeholder: (provided) => ({
+    ...provided,
+    color: '#9ca3af',
+    textAlign: 'left',
+  }),
+};
 
 export default function Transfers() {
   const { assets, employees, assignments, transfers, addTransfer, deleteMultipleTransfers, updateTransfer } = useAssets();
-  const { isReadOnly } = useAuth();
+  const { hasEditPermission } = useAuth();
+  const canEdit = hasEditPermission('Transfers');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
   const [editingId, setEditingId] = useState(null);
@@ -95,33 +158,36 @@ export default function Transfers() {
     e.preventDefault();
     if (!formData.assetSelection || !formData.toEmployee) return;
 
-    const currentAssignment = assignments.find(a => a.assetTag === formData.assetSelection && a.status === 'Active');
-    const matchedAsset = assets.find(a => a.tag === formData.assetSelection) || { name: '', brand: '' };
+    const assetTag = formData.assetSelection;
+    const toEmployeeName = formData.toEmployee;
+
+    const currentAssignment = assignments.find(a => a.assetTag === assetTag && a.status === 'Active');
+    const matchedAsset = assets.find(a => a.tag === assetTag) || { name: '', brand: '' };
     
-    if (!editingId && currentAssignment && currentAssignment.employee === formData.toEmployee) {
+    if (!editingId && currentAssignment && currentAssignment.employee === toEmployeeName) {
       alert("SELF TRANSFER NOT ALLOWED: The asset is already assigned to this employee.");
       return;
     }
 
-    const transferPath = `${currentAssignment ? currentAssignment.employee : 'Unknown'} -> ${formData.toEmployee}`;
+    const transferPath = `${currentAssignment ? currentAssignment.employee : 'Unknown'} -> ${toEmployeeName}`;
 
     if (editingId) {
       updateTransfer(editingId, {
-        assetTag: formData.assetSelection,
+        assetTag: assetTag,
         assetName: matchedAsset.name,
-        model: matchedAsset.brand,
+        model: matchedAsset.model || matchedAsset.brand,
         transferPath: transferPath,
         fromEmployee: currentAssignment ? currentAssignment.employee : 'Unknown',
-        toEmployee: formData.toEmployee
+        toEmployee: toEmployeeName
       });
     } else {
       addTransfer({
-        assetTag: formData.assetSelection,
+        assetTag: assetTag,
         assetName: matchedAsset.name,
-        model: matchedAsset.brand,
+        model: matchedAsset.model || matchedAsset.brand,
         transferPath: transferPath,
         fromEmployee: currentAssignment ? currentAssignment.employee : 'Unknown',
-        toEmployee: formData.toEmployee
+        toEmployee: toEmployeeName
       });
     }
     
@@ -135,7 +201,7 @@ export default function Transfers() {
     <div className="page-content">
       <div className="page-header">
         <h1>Asset Transfers</h1>
-        {!isReadOnly && (
+        {canEdit && (
           <div className="header-actions">
             {isSelectionMode && (
               <button 
@@ -183,8 +249,8 @@ export default function Transfers() {
               )}
               <th>ID</th>
               <th>Serial No.</th>
-              <th>Asset Name</th>
-              <th>Model</th>
+              <th>Category</th>
+              <th>Brand & Model</th>
               <th>Transfer Path</th>
               <th>From Employee</th>
               <th>From Emp ID</th>
@@ -198,8 +264,16 @@ export default function Transfers() {
           <tbody>
             {transfers.map((transfer) => {
               const fromEmpName = transfer.fromEmployee || (transfer.transferPath ? transfer.transferPath.split(' -> ')[0] : 'Unknown');
-              const matchedFromEmp = employees.find(e => e.name === fromEmpName) || {};
-              const matchedToEmp = employees.find(e => e.name === transfer.toEmployee) || {};
+              const matchedFromEmp = employees.find(e => e.name?.toLowerCase().trim() === fromEmpName?.toLowerCase().trim()) || {};
+              const matchedToEmp = employees.find(e => e.name?.toLowerCase().trim() === transfer.toEmployee?.toLowerCase().trim()) || {};
+              const matchedAsset = assets.find(a => a.tag === transfer.assetTag) || {};
+              const brandStr = matchedAsset.brand || '';
+              const modelStr = matchedAsset.model || transfer.model || '';
+              const brandAndModel = brandStr && modelStr ? 
+                (modelStr.toLowerCase().includes(brandStr.toLowerCase()) ? modelStr : `${brandStr} ${modelStr}`) 
+                : modelStr || brandStr || 'N/A';
+              const category = matchedAsset.name || transfer.assetName || 'N/A';
+              
               return (
               <tr 
                 key={transfer.id} 
@@ -218,16 +292,16 @@ export default function Transfers() {
                 )}
                 <td>{transfer.id}</td>
                 <td>{transfer.assetTag}</td>
-                <td style={{textTransform: 'capitalize'}}>{transfer.assetName}</td>
-                <td>{transfer.model}</td>
+                <td style={{textTransform: 'capitalize'}}>{category}</td>
+                <td style={{textTransform: 'capitalize'}}>{brandAndModel}</td>
                 <td>{transfer.transferPath}</td>
                 <td>{fromEmpName}</td>
-                <td>{matchedFromEmp.empId || 'N/A'}</td>
+                <td>{matchedFromEmp.empId || matchedFromEmp.id || 'N/A'}</td>
                 <td>{matchedFromEmp.department || 'N/A'}</td>
                 <td>{transfer.toEmployee || 'N/A'}</td>
-                <td>{matchedToEmp.empId || 'N/A'}</td>
+                <td>{matchedToEmp.empId || matchedToEmp.id || 'N/A'}</td>
                 <td>{matchedToEmp.department || 'N/A'}</td>
-                <td>{transfer.date}</td>
+                <td>{transfer.date ? new Date(transfer.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A'}</td>
               </tr>
             )})}
           </tbody>
@@ -251,34 +325,58 @@ export default function Transfers() {
               <form onSubmit={handleSubmit} className="assign-form">
                 <div className="form-group vertical">
                   <label>Select Asset:</label>
-                  <select 
-                    name="assetSelection" 
-                    value={formData.assetSelection} 
-                    onChange={handleInputChange}
-                    className="search-input"
-                  >
-                    {assets.map(ast => (
-                      <option key={ast.id} value={ast.tag}>
-                        {ast.id} - {ast.tag} - {ast.brand}
-                      </option>
-                    ))}
-                  </select>
+                  <Select 
+                    options={assignments.filter(a => a.status === 'Active').map(assign => {
+                      const ast = assets.find(a => a.tag === assign.assetTag) || {};
+                      const bStr = ast.brand || '';
+                      const mStr = ast.model || '';
+                      const bm = bStr && mStr ? (mStr.toLowerCase().includes(bStr.toLowerCase()) ? mStr : `${bStr} ${mStr}`) : mStr || bStr;
+                      return {
+                        value: assign.assetTag,
+                        label: `${ast.id || assign.id} - ${assign.assetTag} - ${bm} (${assign.employee})`
+                      };
+                    })}
+                    value={formData.assetSelection ? { 
+                      value: formData.assetSelection, 
+                      label: (function() {
+                        const assign = assignments.find(a => a.assetTag === formData.assetSelection && a.status === 'Active');
+                        const ast = assets.find(a => a.tag === formData.assetSelection) || {};
+                        const bStr = ast.brand || '';
+                        const mStr = ast.model || '';
+                        const bm = bStr && mStr ? (mStr.toLowerCase().includes(bStr.toLowerCase()) ? mStr : `${bStr} ${mStr}`) : mStr || bStr;
+                        return `${ast.id || ''} - ${formData.assetSelection} - ${bm} (${assign ? assign.employee : 'Unknown'})`;
+                      })()
+                    } : null}
+                    onChange={(option) => handleInputChange({ target: { name: 'assetSelection', value: option ? option.value : '' } })}
+                    styles={customStyles}
+                    menuPortalTarget={document.body}
+                    placeholder="Search assigned asset..."
+                    isClearable
+                    required
+                  />
                 </div>
 
                 <div className="form-group vertical mt-4">
                   <label>To Employee:</label>
-                  <select 
-                    name="toEmployee" 
-                    value={formData.toEmployee} 
-                    onChange={handleInputChange}
-                    className="search-input"
-                  >
-                    {employees.map(emp => (
-                      <option key={emp.id} value={emp.name}>
-                        {emp.empId} - {emp.name}
-                      </option>
-                    ))}
-                  </select>
+                  <Select 
+                    options={employees.map(emp => ({
+                      value: emp.name,
+                      label: `${emp.empId || emp.id} - ${emp.name}`
+                    }))}
+                    value={formData.toEmployee ? { 
+                      value: formData.toEmployee, 
+                      label: (function() {
+                        const emp = employees.find(e => e.name === formData.toEmployee);
+                        return emp ? `${emp.empId || emp.id} - ${emp.name}` : formData.toEmployee;
+                      })()
+                    } : null}
+                    onChange={(option) => handleInputChange({ target: { name: 'toEmployee', value: option ? option.value : '' } })}
+                    styles={customStyles}
+                    menuPortalTarget={document.body}
+                    placeholder="Search employee..."
+                    isClearable
+                    required
+                  />
                 </div>
                 
                 <div className="form-actions mt-4">

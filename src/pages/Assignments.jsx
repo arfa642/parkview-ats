@@ -2,10 +2,73 @@ import React, { useState, useEffect } from 'react';
 import { useAssets } from '../context/AssetContext';
 import { useAuth } from '../context/AuthContext';
 import { MdDelete, MdEdit, MdAdd, MdClose } from 'react-icons/md';
+import Select from 'react-select';
+
+const customStyles = {
+  control: (provided) => ({
+    ...provided,
+    backgroundColor: '#1f2937', // Solid dark color
+    borderColor: '#374151',
+    color: '#f9fafb',
+    minHeight: '40px',
+    boxShadow: 'none',
+    textAlign: 'left',
+    '&:hover': {
+      borderColor: '#9ca3af'
+    }
+  }),
+  valueContainer: (provided) => ({
+    ...provided,
+    justifyContent: 'flex-start',
+    textAlign: 'left',
+    padding: '0 8px',
+  }),
+  singleValue: (provided) => ({
+    ...provided,
+    color: '#f9fafb',
+    textAlign: 'left',
+    margin: 0,
+  }),
+  menu: (provided) => ({
+    ...provided,
+    backgroundColor: '#1f2937', // Solid dark color
+    border: '1px solid #374151',
+    textAlign: 'left',
+  }),
+  menuPortal: (base) => ({ 
+    ...base, 
+    zIndex: 9999 
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    backgroundColor: state.isFocused ? '#374151' : '#1f2937', // Solid dark colors
+    color: '#f9fafb',
+    cursor: 'pointer',
+    textAlign: 'left',
+    justifyContent: 'flex-start',
+    display: 'flex',
+    alignItems: 'center',
+    '&:active': {
+      backgroundColor: '#d4af37',
+    }
+  }),
+  input: (provided) => ({
+    ...provided,
+    color: '#f9fafb',
+    textAlign: 'left',
+    margin: 0,
+  }),
+  placeholder: (provided) => ({
+    ...provided,
+    color: '#9ca3af',
+    textAlign: 'left',
+  }),
+};
 
 export default function Assignments() {
   const { assets, employees, assignments, addAssignment, deleteMultipleAssignments, updateAssignment } = useAssets();
-  const { isReadOnly } = useAuth();
+  const { hasEditPermission } = useAuth();
+  const canEdit = hasEditPermission('Assignments');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
   const [editingId, setEditingId] = useState(null);
@@ -14,6 +77,7 @@ export default function Assignments() {
   // Form State
   const [assetSearch, setAssetSearch] = useState('');
   const [employeeSearch, setEmployeeSearch] = useState('');
+  const [assignDate, setAssignDate] = useState(new Date().toISOString().split('T')[0]);
 
   // Ctrl+A and Escape support
   useEffect(() => {
@@ -57,6 +121,7 @@ export default function Assignments() {
     setEditingId(null);
     setAssetSearch('');
     setEmployeeSearch('');
+    setAssignDate(new Date().toISOString().split('T')[0]);
     setIsModalOpen(true);
   };
 
@@ -67,6 +132,7 @@ export default function Assignments() {
       setEditingId(assignmentToEdit.id);
       setAssetSearch(assignmentToEdit.assetTag);
       setEmployeeSearch(assignmentToEdit.employee);
+      setAssignDate(assignmentToEdit.date || new Date().toISOString().split('T')[0]);
       setIsModalOpen(true);
     }
   };
@@ -82,29 +148,38 @@ export default function Assignments() {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    const assetTag = assetSearch.split(' - ')[1] || assetSearch;
-    const employeeName = employeeSearch.split(' - ')[1] || employeeSearch;
+    const assetTag = assetSearch;
+    const employeeName = employeeSearch;
     const matchedAsset = assets.find(a => a.tag === assetTag) || { brand: '' };
+
+    const activeAssignment = assignments.find(a => a.assetTag === assetTag && a.status === 'Active');
+    if (!editingId && activeAssignment) {
+      alert("ERROR: This asset is already assigned and active! Please return it before assigning it again.");
+      return;
+    }
 
     if (editingId) {
       updateAssignment(editingId, {
         assetTag: assetTag,
         assetName: matchedAsset.name,
-        model: matchedAsset.brand,
-        employee: employeeName
+        model: matchedAsset.model || matchedAsset.brand,
+        employee: employeeName,
+        date: assignDate
       });
     } else {
       addAssignment({
         assetTag: assetTag,
         assetName: matchedAsset.name,
-        model: matchedAsset.brand,
-        employee: employeeName
+        model: matchedAsset.model || matchedAsset.brand,
+        employee: employeeName,
+        date: assignDate
       });
     }
     
     setIsModalOpen(false);
     setAssetSearch('');
     setEmployeeSearch('');
+    setAssignDate(new Date().toISOString().split('T')[0]);
     setEditingId(null);
     setSelectedIds([]);
     setIsSelectionMode(false);
@@ -114,7 +189,7 @@ export default function Assignments() {
     <div className="page-content assignments-page">
       <div className="page-header">
         <h1>Asset Assignments</h1>
-        {!isReadOnly && (
+        {canEdit && (
           <div className="header-actions">
             {isSelectionMode && (
               <button 
@@ -162,8 +237,8 @@ export default function Assignments() {
               )}
               <th>ID</th>
               <th>Serial No.</th>
-              <th>Asset Name</th>
-              <th>Model</th>
+              <th>Category</th>
+              <th>Brand & Model</th>
               <th>Employee</th>
               <th>Emp ID</th>
               <th>Emp Dept</th>
@@ -172,8 +247,13 @@ export default function Assignments() {
             </tr>
           </thead>
           <tbody>
-            {assignments.map((assignment) => {
+            {assignments.map((assignment, idx) => {
               const matchedEmp = employees.find(e => e.name === assignment.employee) || {};
+              const matchedAsset = assets.find(a => a.tag === assignment.assetTag) || {};
+              const bStr = matchedAsset.brand || '';
+              const mStr = matchedAsset.model || assignment.model || '';
+              const bm = bStr && mStr ? (mStr.toLowerCase().includes(bStr.toLowerCase()) ? mStr : `${bStr} ${mStr}`) : mStr || bStr || assignment.model || 'N/A';
+              const category = matchedAsset.name || assignment.assetName || 'N/A';
               return (
               <tr 
                 key={assignment.id} 
@@ -190,14 +270,14 @@ export default function Assignments() {
                     />
                   </td>
                 )}
-                <td>{assignment.id}</td>
+                <td>{idx + 1}</td>
                 <td>{assignment.assetTag}</td>
-                <td>{assignment.assetName}</td>
-                <td>{assignment.model}</td>
+                <td style={{textTransform: 'capitalize'}}>{category}</td>
+                <td style={{textTransform: 'capitalize'}}>{bm}</td>
                 <td>{assignment.employee}</td>
-                <td>{matchedEmp.empId || 'N/A'}</td>
+                <td>{matchedEmp.empId || matchedEmp.id || 'N/A'}</td>
                 <td>{matchedEmp.department || 'N/A'}</td>
-                <td>{assignment.date}</td>
+                <td>{assignment.date ? new Date(assignment.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A'}</td>
                 <td>{assignment.status}</td>
               </tr>
             )})}
@@ -222,38 +302,53 @@ export default function Assignments() {
               <form onSubmit={handleSubmit} className="assign-form">
                 <div className="form-group vertical">
                   <label>Select Asset:</label>
-                  <input 
-                    type="text" 
-                    list="assets-list" 
-                    className="search-input"
-                    value={assetSearch}
-                    onChange={(e) => setAssetSearch(e.target.value)}
+                  <Select 
+                    options={assets
+                      .filter(asset => {
+                        if (!editingId) return asset.status === 'Available';
+                        const editingAssignment = assignments.find(a => a.id === editingId);
+                        return asset.status === 'Available' || (editingAssignment && editingAssignment.assetTag === asset.tag);
+                      })
+                      .map(asset => ({
+                        value: asset.tag,
+                        label: `${asset.id} - ${asset.tag} - ${asset.model || asset.brand}`
+                      }))}
+                    value={assetSearch ? { value: assetSearch, label: assetSearch } : null}
+                    onChange={(option) => setAssetSearch(option ? option.value : '')}
+                    styles={customStyles}
+                    menuPortalTarget={document.body}
                     placeholder="Search asset..."
+                    isClearable
                     required
                   />
-                  <datalist id="assets-list">
-                    {assets.map(asset => (
-                      <option key={asset.id} value={`${asset.id} - ${asset.tag} - ${asset.brand}`} />
-                    ))}
-                  </datalist>
                 </div>
 
                 <div className="form-group vertical mt-4">
                   <label>Select Employee:</label>
-                  <input 
-                    type="text" 
-                    list="employees-list" 
-                    className="search-input"
-                    value={employeeSearch}
-                    onChange={(e) => setEmployeeSearch(e.target.value)}
+                  <Select 
+                    options={employees.map(emp => ({
+                      value: emp.name,
+                      label: `${emp.empId || emp.id} - ${emp.name}`
+                    }))}
+                    value={employeeSearch ? { value: employeeSearch, label: employeeSearch } : null}
+                    onChange={(option) => setEmployeeSearch(option ? option.value : '')}
+                    styles={customStyles}
+                    menuPortalTarget={document.body}
                     placeholder="Search employee..."
+                    isClearable
                     required
                   />
-                  <datalist id="employees-list">
-                    {employees.map(emp => (
-                      <option key={emp.id} value={`${emp.empId} - ${emp.name}`} />
-                    ))}
-                  </datalist>
+                </div>
+
+                <div className="form-group vertical mt-4">
+                  <label>Assignment Date:</label>
+                  <input 
+                    type="date" 
+                    className="search-input"
+                    value={assignDate}
+                    onChange={(e) => setAssignDate(e.target.value)}
+                    required
+                  />
                 </div>
                 
                 <div className="form-actions mt-4">

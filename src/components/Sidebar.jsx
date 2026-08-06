@@ -17,7 +17,8 @@ import {
   MdLogout,
   MdPerson,
   MdEdit,
-  MdHistory
+  MdHistory,
+  MdSecurity
 } from 'react-icons/md';
 import { useAuth } from '../context/AuthContext';
 import logoLight from '../assets/pvatsl.png';
@@ -37,11 +38,13 @@ const navItems = [
   { name: 'Audit Log', path: '/audit-log', icon: <MdHistory />, roles: ['Developer', 'Executive'] },
   { name: 'Import Data', path: '/import-data', icon: <MdCloudUpload />, roles: ['Developer', 'Executive'] },
   { name: 'Settings', path: '/settings', icon: <MdSettings />, roles: ['Developer', 'Executive'] },
+  { name: 'Users', path: '/users', icon: <MdPeople />, roles: ['Developer', 'Executive'] },
+  { name: 'Access', path: '/access-management', icon: <MdSecurity />, roles: ['Developer', 'Executive'] },
 ];
 
 export default function Sidebar({ isOpen, setIsOpen }) {
   const [theme, setTheme] = useState('dark');
-  const { currentUser, logout, updateProfile } = useAuth();
+  const { currentUser, permissions, logout, updateProfile } = useAuth();
 
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [profileName, setProfileName] = useState('');
@@ -55,13 +58,13 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     }
   }, [currentUser]);
 
-  const handleProfileSubmit = (e) => {
+  const handleProfileSubmit = async (e) => {
     e.preventDefault();
     if (profilePassword && profilePassword !== confirmPassword) {
       alert("New passwords do not match!");
       return;
     }
-    const res = updateProfile(profileName, profilePassword, oldPassword);
+    const res = await updateProfile(profileName, profilePassword, oldPassword);
     if (profilePassword && !res?.success) {
       alert(res?.message || "Failed to update profile");
       return;
@@ -119,7 +122,10 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         </div>
 
         <nav className="sidebar-nav">
-          {navItems.filter(item => item.roles.includes(currentUser?.role)).map((item) => (
+          {navItems.filter(item => {
+            const allowed = permissions?.[currentUser?.role]?.allowedPages || [];
+            return allowed.includes(item.name);
+          }).map((item) => (
             <NavLink
               key={item.name}
               to={item.path}
@@ -195,56 +201,59 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             </div>
             <div className="modal-body">
               <form onSubmit={handleProfileSubmit} className="asset-form">
-                <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-                  <label>Display Name</label>
+                <div className="form-group" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '8px' }}>
+                  <label style={{ width: '100%', textAlign: 'left', fontWeight: '500' }}>Display Name</label>
                   <input
                     type="text"
                     value={profileName}
                     onChange={(e) => setProfileName(e.target.value)}
                     required
+                    style={{ width: '100%', boxSizing: 'border-box' }}
                   />
                 </div>
-                <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-                  <label>Old Password</label>
+                <div className="form-group" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '8px' }}>
+                  <label style={{ width: '100%', textAlign: 'left', fontWeight: '500' }}>Old Password</label>
                   <input
                     type="password"
                     value={oldPassword}
                     onChange={(e) => setOldPassword(e.target.value)}
                     placeholder="Enter old password if changing it"
                     required={!!profilePassword}
+                    style={{ width: '100%', boxSizing: 'border-box' }}
                   />
                 </div>
-                <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-                  <label>New Password</label>
+                <div className="form-group" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '8px' }}>
+                  <label style={{ width: '100%', textAlign: 'left', fontWeight: '500' }}>New Password</label>
                   <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
                     <input
                       type="password"
                       value={profilePassword}
                       onChange={(e) => setProfilePassword(e.target.value)}
                       placeholder="Leave blank to keep current"
-                      style={{ width: '100%' }}
+                      style={{ width: '100%', boxSizing: 'border-box' }}
                     />
                     {profilePassword && (
-                      <div style={{ marginTop: '4px', fontSize: '0.75rem', color: strength.color, fontWeight: '500' }}>
+                      <div style={{ marginTop: '6px', fontSize: '0.8rem', color: strength.color, fontWeight: '500' }}>
                         Security: {strength.msg}
                       </div>
                     )}
                   </div>
                 </div>
                 {profilePassword && (
-                  <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-                    <label>Confirm New Password</label>
+                  <div className="form-group" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '8px' }}>
+                    <label style={{ width: '100%', textAlign: 'left', fontWeight: '500' }}>Confirm New Password</label>
                     <input
                       type="password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Type new password again"
                       required
+                      style={{ width: '100%', boxSizing: 'border-box' }}
                     />
                   </div>
                 )}
-                <div className="form-actions" style={{ gridColumn: '1 / -1' }}>
-                  <button type="submit" className="btn primary-btn">Save Changes</button>
+                <div className="form-actions" style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end' }}>
+                  <button type="submit" className="btn blue-btn" style={{ padding: '10px 24px', fontWeight: '600', fontSize: '0.95rem' }}>Save Changes</button>
                 </div>
               </form>
             </div>

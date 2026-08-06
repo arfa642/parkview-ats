@@ -4,6 +4,10 @@ import Sidebar from './Sidebar';
 import { MdMenu, MdWarningAmber } from 'react-icons/md';
 import { useAssets } from '../context/AssetContext';
 
+// Import images to ensure Vite bundles them with correct paths
+import logoMobileLight from '../assets/ml.png';
+import logoMobileDark from '../assets/md.png';
+
 export default function Layout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { isDummyData } = useAssets();
@@ -29,12 +33,12 @@ export default function Layout() {
       <div className="mobile-header">
         <img 
           className="mobile-logo light-logo"
-          src="/ml.png" 
+          src={logoMobileLight} 
           alt="PVC ATS Logo Light" 
         />
         <img 
           className="mobile-logo dark-logo"
-          src="/md.png" 
+          src={logoMobileDark} 
           alt="PVC ATS Logo Dark" 
         />
         <button className="mobile-menu-btn" onClick={toggleMenu}>

@@ -1,10 +1,17 @@
 import React, { useState } from 'react';
 import { useAssets } from '../context/AssetContext';
-import { MdSearch } from 'react-icons/md';
+import { useAuth } from '../context/AuthContext';
+import { MdSearch, MdOutlineAssignmentReturn, MdClose } from 'react-icons/md';
 
 export default function EmployeeAssets() {
-  const { employees, assets, assignments } = useAssets();
+  const { employees, assets, assignments, addReturn } = useAssets();
+  const { hasEditPermission } = useAuth();
+  const canEdit = hasEditPermission('Returns');
   const [searchTerm, setSearchTerm] = useState('');
+  
+  const [returnModalOpen, setReturnModalOpen] = useState(false);
+  const [returnAsset, setReturnAsset] = useState(null);
+  const [formData, setFormData] = useState({ condition: 'Good', reason: '' });
 
   // Group assignments by employee
   const employeeAssetsData = employees.map(emp => {
@@ -16,7 +23,7 @@ export default function EmployeeAssets() {
       return {
         tag: assign.assetTag,
         assetName: asset.name,
-        brand: assign.model || asset.brand,
+        brand: assign.model || asset.model || asset.brand,
         specs: asset.specs,
         assignDate: assign.date
       };
@@ -28,20 +35,20 @@ export default function EmployeeAssets() {
   // Filter based on search term (search by employee name, id, or asset tag)
   const filteredData = employeeAssetsData.filter(emp => {
     const term = searchTerm.toLowerCase();
-    const matchEmp = emp.name.toLowerCase().includes(term) || emp.empId.toLowerCase().includes(term);
+    const matchEmp = emp.name.toLowerCase().includes(term) || (emp.empId || emp.id).toString().toLowerCase().includes(term);
     const matchAsset = emp.assetsDetails.some(a => a.tag.toLowerCase().includes(term) || (a.assetName && a.assetName.toLowerCase().includes(term)));
     return matchEmp || matchAsset;
   });
 
   const exportToCSV = () => {
-    const headers = ['Employee Name', 'Employee ID', 'Department', 'Designation', 'Serial No.', 'Asset Name', 'Brand & Model', 'Specs', 'Assign Date'];
+    const headers = ['Employee Name', 'Employee ID', 'Department', 'Designation', 'Serial No.', 'Category', 'Brand & Model', 'Specs', 'Assign Date'];
     let csvContent = headers.join(',') + '\n';
 
     filteredData.forEach(emp => {
       emp.assetsDetails.forEach(asset => {
         const row = [
           `"${emp.name}"`,
-          `"${emp.empId}"`,
+          `"${emp.empId || emp.id}"`,
           `"${emp.department}"`,
           `"${emp.designation}"`,
           `"${asset.tag}"`,
@@ -92,7 +99,7 @@ export default function EmployeeAssets() {
             <div className="employee-header">
               <h2>{emp.name}</h2>
               <span className="emp-details">
-                ID: {emp.empId} | {emp.department} | {emp.designation}
+                ID: {emp.empId || emp.id} | {emp.department} | {emp.designation}
               </span>
             </div>
             
@@ -101,10 +108,11 @@ export default function EmployeeAssets() {
                 <thead>
                   <tr>
                     <th>Serial No.</th>
-                    <th>Asset Name</th>
+                    <th>Category</th>
                     <th>Brand & Model</th>
                     <th>Specs</th>
                     <th>Assign Date</th>
+                    {canEdit && <th style={{textAlign: 'right', width: '100px'}}>Action</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -114,7 +122,23 @@ export default function EmployeeAssets() {
                       <td style={{textTransform: 'capitalize'}}>{asset.assetName}</td>
                       <td>{asset.brand}</td>
                       <td>{asset.specs}</td>
-                      <td>{asset.assignDate}</td>
+                      <td>{asset.assignDate ? new Date(asset.assignDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A'}</td>
+                      {canEdit && (
+                        <td style={{textAlign: 'right'}}>
+                          <button 
+                            className="btn red-btn" 
+                            style={{padding: '4px 8px', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '4px'}}
+                            onClick={() => {
+                              setReturnAsset({ ...asset, employee: emp.name });
+                              setFormData({ condition: 'Good', reason: '' });
+                              setReturnModalOpen(true);
+                            }}
+                            title="Return Asset"
+                          >
+                            <MdOutlineAssignmentReturn /> Return
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -127,6 +151,79 @@ export default function EmployeeAssets() {
           <div className="no-data-msg">No employee assets found.</div>
         )}
       </div>
+
+      {returnModalOpen && returnAsset && (
+        <div className="modal-overlay">
+          <div className="modal-content modal-sm">
+            <div className="modal-header">
+              <div className="modal-title">
+                <span className="modal-icon"></span>
+                <h3>Quick Return Asset</h3>
+              </div>
+              <div className="modal-controls">
+                <span className="control-btn close" onClick={() => setReturnModalOpen(false)}><MdClose /></span>
+              </div>
+            </div>
+            
+            <div className="modal-body text-center">
+              <div style={{marginBottom: '15px', padding: '10px', backgroundColor: '#374151', borderRadius: '4px', textAlign: 'left', color: '#f9fafb'}}>
+                <p><strong>Employee:</strong> {returnAsset.employee}</p>
+                <p><strong>Asset Tag:</strong> {returnAsset.tag}</p>
+                <p><strong>Category:</strong> <span style={{textTransform: 'capitalize'}}>{returnAsset.assetName}</span></p>
+                <p><strong>Brand & Model:</strong> {returnAsset.brand}</p>
+              </div>
+
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                addReturn({
+                  assetTag: returnAsset.tag,
+                  assetName: returnAsset.assetName,
+                  model: returnAsset.brand,
+                  employee: returnAsset.employee,
+                  condition: formData.condition,
+                  remarks: formData.reason
+                });
+                setReturnModalOpen(false);
+                setReturnAsset(null);
+              }}>
+                
+                <div className="form-group vertical mt-4" style={{ textAlign: 'left' }}>
+                  <label>Condition:</label>
+                  <select 
+                    name="condition" 
+                    value={formData.condition} 
+                    onChange={(e) => setFormData({...formData, condition: e.target.value})}
+                    style={{backgroundColor: '#1f2937', border: '1px solid #4b5563', color: 'white', width: '100%', padding: '10px', borderRadius: '6px', outline: 'none'}}
+                  >
+                    <option value="Good">Good</option>
+                    <option value="Fair">Fair</option>
+                    <option value="Poor">Poor</option>
+                    <option value="Damaged">Damaged</option>
+                  </select>
+                </div>
+
+                <div className="form-group vertical mt-4" style={{ textAlign: 'left' }}>
+                  <label>Reason / Remarks:</label>
+                  <input 
+                    type="text" 
+                    name="reason" 
+                    value={formData.reason} 
+                    onChange={(e) => setFormData({...formData, reason: e.target.value})}
+                    placeholder="Enter reason for return..."
+                    style={{backgroundColor: '#1f2937', border: '1px solid #4b5563', color: 'white', width: '100%', padding: '10px', borderRadius: '6px', outline: 'none'}}
+                  />
+                </div>
+                
+                <div className="form-actions mt-4">
+                  <button type="submit" className="btn red-btn w-full justify-center">
+                    Confirm Return
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

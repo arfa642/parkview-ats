@@ -5,7 +5,7 @@ import './ImportData.css';
 
 export default function ImportData() {
   const [dataType, setDataType] = useState('Assets');
-  const { assets, setAssets, employees, setEmployees } = useAssets();
+  const { assets, addAssetsBulk, employees, addEmployeesBulk } = useAssets();
   const fileInputRef = useRef(null);
 
   const handleFileUpload = (e) => {
@@ -64,12 +64,35 @@ export default function ImportData() {
         }
 
         currentTags.add(tag.toLowerCase());
+        const rawCat = getVal(row, 'category') || getVal(row, 'asset name');
+        const rawModel = getVal(row, 'brand & model');
+        
+        let normCat = 'Equipment';
+        const lowerCat = rawCat.toLowerCase();
+        const lowerMod = rawModel.toLowerCase();
+        if (lowerCat.includes('laptop') || lowerCat.includes('thinkpad') || lowerCat.includes('macbook') || lowerMod.includes('laptop') || lowerMod.includes('thinkpad') || lowerMod.includes('macbook')) {
+          normCat = 'Laptop';
+        } else if (lowerCat === 'pc' || lowerCat.includes('pc') || lowerCat.includes('desktop') || lowerMod.includes('optiplex')) {
+          normCat = 'PC';
+        } else if (lowerCat.includes('mobile') || lowerCat.includes('phone') || lowerMod.includes('iphone')) {
+          normCat = 'Mobile Phone';
+        } else if (lowerCat.includes('printer') || lowerMod.includes('printer') || lowerMod.includes('laserjet')) {
+          normCat = 'Printer';
+        } else if (lowerCat.includes('monitor') || lowerCat.includes('led') || lowerMod.includes('ultrasharp')) {
+          normCat = 'Monitor';
+        } else if (lowerCat.includes('equipment') || lowerMod.includes('cisco') || lowerMod.includes('router')) {
+          normCat = 'Equipment';
+        } else if (lowerCat.includes('misc')) {
+          normCat = 'Misc.';
+        } else if (rawCat) {
+          normCat = rawCat.charAt(0).toUpperCase() + rawCat.slice(1);
+        }
+
         newAssets.push({
           id: Date.now() + index,
           tag: tag,
-          serialNumber: getVal(row, 'serial number'),
-          name: getVal(row, 'asset name'),
-          brand: getVal(row, 'brand & model'),
+          name: normCat,
+          brand: rawModel,
           specs: getVal(row, 'specs'),
           location: getVal(row, 'location'),
           remarks: getVal(row, 'remarks'),
@@ -78,13 +101,13 @@ export default function ImportData() {
       });
 
       if (newAssets.length > 0) {
-        setAssets([...assets, ...newAssets]);
+        addAssetsBulk(newAssets);
       }
       importedCount = newAssets.length;
 
     } else if (dataType === 'Employees') {
       const newEmployees = [];
-      const currentIds = new Set(employees.map(e => String(e.empId).toLowerCase()));
+      const currentIds = new Set(employees.map(e => String(e.empId || e.id).toLowerCase()));
       
       data.forEach((row, index) => {
         const empId = getVal(row, 'employee id');
@@ -109,7 +132,7 @@ export default function ImportData() {
       });
 
       if (newEmployees.length > 0) {
-        setEmployees([...employees, ...newEmployees]);
+        addEmployeesBulk(newEmployees);
       }
       importedCount = newEmployees.length;
     }
@@ -138,7 +161,7 @@ export default function ImportData() {
         <h4 className="instruction-subtitle">Preferred Field Names (Case-Insensitive):</h4>
         
         <ul className="field-list">
-          <li>• For Assets: Tag, Serial Number, Asset Name, Brand & Model, Specs, Location, Remarks</li>
+          <li>• For Assets: Tag, Category, Brand & Model, Specs, Location, Remarks</li>
           <li>• For Employees: Employee ID, Name, Department, Designation</li>
         </ul>
 

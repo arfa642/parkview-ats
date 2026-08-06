@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MdSave, MdCheckCircle, MdErrorOutline, MdDns, MdVpnKey, MdPerson } from 'react-icons/md';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = `http://${window.location.hostname}:5000/api`;
 
 export default function Settings() {
   const [formData, setFormData] = useState({
