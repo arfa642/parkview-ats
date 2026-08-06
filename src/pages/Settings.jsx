@@ -193,23 +193,61 @@ export default function Settings() {
         <div className="settings-card" style={{ maxWidth: '800px', margin: '0 auto' }}>
           
           {/* Connection Status Banner */}
-        <div className={`status-banner ${isConnected ? 'success' : 'error'}`}>
-          {isConnected ? <MdCheckCircle size={24} /> : <MdErrorOutline size={24} />}
-          <span>{isConnected ? 'Database Connected & Active' : 'Database Disconnected'}</span>
-        </div>
+          <div className={`status-banner ${isConnected ? 'success' : 'error'}`}>
+            {isConnected ? <MdCheckCircle size={24} /> : <MdErrorOutline size={24} />}
+            <span>{isConnected ? 'Database Connected & Active' : 'Database Disconnected'}</span>
+          </div>
+
+          {/* Quick Preset Buttons */}
+          <div style={{ marginBottom: '1.5rem', display: 'flex', gap: '10px' }}>
+            <button
+              type="button"
+              className="btn"
+              onClick={() => {
+                setFormData({
+                  server: '127.0.0.1',
+                  port: '3306',
+                  database: 'pv_ats_db',
+                  user: 'root',
+                  password: ''
+                });
+                setStatus({ type: 'info', message: 'Loaded Local XAMPP MySQL preset. Click "Test & Save Connection" to switch.' });
+              }}
+              style={{ flex: 1, padding: '10px', backgroundColor: 'rgba(59, 130, 246, 0.15)', color: '#3b82f6', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '0.9rem' }}
+            >
+              💻 Fill Local XAMPP Preset
+            </button>
+            <button
+              type="button"
+              className="btn"
+              onClick={() => {
+                setFormData({
+                  server: 'mysql.railway.internal',
+                  port: '3306',
+                  database: 'pv_ats_db',
+                  user: 'root',
+                  password: ''
+                });
+                setStatus({ type: 'info', message: 'Enter your Cloud DB Host and Password, then click "Test & Save Connection".' });
+              }}
+              style={{ flex: 1, padding: '10px', backgroundColor: 'rgba(168, 85, 247, 0.15)', color: '#a855f7', border: '1px solid rgba(168, 85, 247, 0.3)', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '0.9rem' }}
+            >
+              ☁️ Load Cloud DB Preset Template
+            </button>
+          </div>
 
         <form onSubmit={handleSubmit}>
           
           <div className="grid-row">
             <div className="settings-input-group">
-              <label className="settings-label"><MdDns size={18} /> Server IP</label>
+              <label className="settings-label"><MdDns size={18} /> Server IP / Host</label>
               <input 
                 type="text" 
                 className="settings-input" 
                 name="server" 
                 value={formData.server} 
                 onChange={handleChange} 
-                placeholder="e.g. 172.19.0.123" 
+                placeholder="e.g. 127.0.0.1 or cloud.db.com" 
                 required 
               />
             </div>
@@ -222,7 +260,7 @@ export default function Settings() {
                 name="port" 
                 value={formData.port} 
                 onChange={handleChange} 
-                placeholder="1433" 
+                placeholder="3306" 
                 required 
               />
             </div>
