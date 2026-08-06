@@ -1,76 +1,130 @@
 import React, { useEffect, useRef } from 'react';
 
-// Hardcoded, frozen immutable developer identity
-const DEVELOPER_INFO = Object.freeze({
-  title: String.fromCharCode(68, 69, 86, 69, 76, 79, 80, 69, 68, 32, 66, 89), // DEVELOPED BY
-  name: String.fromCharCode(77, 117, 104, 97, 109, 109, 97, 100, 32, 65, 114, 102, 97), // Muhammad Arfa
-  role: String.fromCharCode(73, 84, 32, 73, 110, 116, 101, 114, 110, 32, 64, 32, 80, 86, 67) // IT Intern @ PVC
-});
+// Obfuscated Encrypted Byte Payloads (Anti-tamper string array)
+const _0x4a12 = Object.freeze([
+  [68, 69, 86, 69, 76, 79, 80, 69, 68, 32, 66, 89], // "DEVELOPED BY"
+  [77, 117, 104, 97, 109, 109, 97, 100, 32, 65, 114, 102, 97], // "Muhammad Arfa"
+  [73, 84, 32, 73, 110, 116, 101, 114, 110, 32, 64, 32, 80, 86, 67] // "IT Intern @ PVC"
+]);
+
+const _decode = (arr) => arr.map(c => String.fromCharCode(c)).join('');
 
 export default function DeveloperCredit() {
   const containerRef = useRef(null);
+  const canvasRef = useRef(null);
+
+  const drawCreditCanvas = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // High-DPI Crisp Retina Canvas Scaling
+    const dpr = window.devicePixelRatio || 1;
+    const width = 200;
+    const height = 55;
+
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, width, height);
+
+    // Render "DEVELOPED BY"
+    ctx.font = '500 10px Inter, system-ui, -apple-system, sans-serif';
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.75)';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText(_decode(_0x4a12[0]), width / 2, 4);
+
+    // Render "Muhammad Arfa"
+    ctx.font = '700 14px Inter, system-ui, -apple-system, sans-serif';
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillText(_decode(_0x4a12[1]), width / 2, 19);
+
+    // Render "IT Intern @ PVC"
+    ctx.font = '500 11px Inter, system-ui, -apple-system, sans-serif';
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.75)';
+    ctx.fillText(_decode(_0x4a12[2]), width / 2, 37);
+  };
 
   useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
+    drawCreditCanvas();
 
-    // Self-healing function that enforces immutable content
-    const enforceCredit = () => {
-      const titleEl = el.querySelector('.dev-title');
-      const nameEl = el.querySelector('.dev-name');
-      const roleEl = el.querySelector('.dev-role');
+    const container = containerRef.current;
+    if (!container) return;
 
-      if (!titleEl || titleEl.textContent !== DEVELOPER_INFO.title) {
-        if (titleEl) titleEl.textContent = DEVELOPER_INFO.title;
-      }
-      if (!nameEl || nameEl.textContent !== DEVELOPER_INFO.name) {
-        if (nameEl) nameEl.textContent = DEVELOPER_INFO.name;
-      }
-      if (!roleEl || roleEl.textContent !== DEVELOPER_INFO.role) {
-        if (roleEl) roleEl.textContent = DEVELOPER_INFO.role;
+    // Strict Enforcement of Styles and Canvas Presence
+    const enforceSecurity = () => {
+      if (!container) return;
+      
+      // Enforce Visibility & Display Styles against DevTools Hiding
+      container.style.setProperty('display', 'flex', 'important');
+      container.style.setProperty('flex-direction', 'column', 'important');
+      container.style.setProperty('align-items', 'center', 'important');
+      container.style.setProperty('visibility', 'visible', 'important');
+      container.style.setProperty('opacity', '1', 'important');
+      container.style.setProperty('pointer-events', 'none', 'important');
+      container.style.setProperty('user-select', 'none', 'important');
+
+      // Verify Canvas presence
+      const currentCanvas = container.querySelector('canvas');
+      if (!currentCanvas || currentCanvas !== canvasRef.current) {
+        if (canvasRef.current) {
+          container.appendChild(canvasRef.current);
+          drawCreditCanvas();
+        }
       }
     };
 
-    // MutationObserver monitors DOM tampering (e.g. Inspect Element edits) and instantly reverts them
+    // 1. MutationObserver to catch inline DOM modifications instantly
     const observer = new MutationObserver(() => {
-      enforceCredit();
+      enforceSecurity();
+      drawCreditCanvas();
     });
 
-    observer.observe(el, {
+    observer.observe(container, {
+      attributes: true,
       childList: true,
       subtree: true,
-      characterData: true,
-      attributes: true
+      characterData: true
     });
 
-    return () => observer.disconnect();
+    // 2. High-Frequency Health Heartbeat Interval (Every 150ms)
+    const interval = setInterval(() => {
+      enforceSecurity();
+    }, 150);
+
+    // Re-draw on window resize or DPR change
+    window.addEventListener('resize', drawCreditCanvas);
+
+    return () => {
+      observer.disconnect();
+      clearInterval(interval);
+      window.removeEventListener('resize', drawCreditCanvas);
+    };
   }, []);
 
   return (
-    <div 
+    <div
       ref={containerRef}
-      className="developer-credit-locked"
+      className="developer-credit-locked-canvas"
       style={{
-        textAlign: 'center',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
         marginTop: '6px',
         marginBottom: '6px',
         userSelect: 'none',
         WebkitUserSelect: 'none',
-        MozUserSelect: 'none',
-        msUserSelect: 'none',
         pointerEvents: 'none',
         cursor: 'default'
       }}
     >
-      <p className="dev-title" style={{ margin: 0, fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: '500' }}>
-        {DEVELOPER_INFO.title}
-      </p>
-      <p className="dev-name" style={{ margin: '2px 0', fontSize: '0.88rem', color: 'var(--text-primary)', fontWeight: '700', letterSpacing: '0.2px' }}>
-        {DEVELOPER_INFO.name}
-      </p>
-      <p className="dev-role" style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-secondary)', fontWeight: '500' }}>
-        {DEVELOPER_INFO.role}
-      </p>
+      <canvas ref={canvasRef} style={{ pointerEvents: 'none', display: 'block' }} />
     </div>
   );
 }
