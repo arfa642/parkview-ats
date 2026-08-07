@@ -12,17 +12,44 @@ export default function Employees() {
   const [editingId, setEditingId] = useState(null);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedDepartment, setSelectedDepartment] = useState('ALL');
   
   // Form State
   const initialFormState = { empId: '', name: '', department: 'Accounts', designation: '' };
   const [formData, setFormData] = useState(initialFormState);
 
+  // Extract ALL departments (combining predefined lists + existing employee departments)
+  const predefinedDepartments = (() => {
+    try {
+      const saved = localStorage.getItem('pv_ats_predefined_lists');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.departments && Array.isArray(parsed.departments)) {
+          return parsed.departments;
+        }
+      }
+    } catch (e) {}
+    return DEPARTMENT_LIST;
+  })();
+
+  const departmentOptions = Array.from(new Set([
+    ...predefinedDepartments,
+    ...DEPARTMENT_LIST,
+    ...employees.map(e => e.department).filter(Boolean)
+  ])).sort();
+
   const filteredEmployees = employees.filter(emp => {
     const term = searchTerm.toLowerCase();
-    return emp.name.toLowerCase().includes(term) || 
-           emp.empId.toLowerCase().includes(term) ||
-           emp.department.toLowerCase().includes(term) ||
-           emp.designation.toLowerCase().includes(term);
+    const matchesSearch = !term || 
+      emp.name.toLowerCase().includes(term) || 
+      emp.empId.toLowerCase().includes(term) ||
+      emp.department.toLowerCase().includes(term) ||
+      emp.designation.toLowerCase().includes(term);
+
+    const matchesDept = selectedDepartment === 'ALL' || 
+      (emp.department && emp.department.toLowerCase() === selectedDepartment.toLowerCase());
+
+    return matchesSearch && matchesDept;
   });
 
   // Ctrl+A and Escape support
@@ -155,8 +182,8 @@ export default function Employees() {
         )}
       </div>
 
-      <div className="toolbar">
-        <div className="search-bar">
+      <div className="toolbar" style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div className="search-bar" style={{ flex: 1, minWidth: '250px' }}>
           <MdSearch className="search-icon" />
           <input 
             type="text" 
@@ -164,6 +191,36 @@ export default function Employees() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
+        </div>
+
+        {/* Department Filter Dropdown */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <label style={{ fontWeight: '600', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Department:</label>
+          <select
+            value={selectedDepartment}
+            onChange={(e) => setSelectedDepartment(e.target.value)}
+            style={{
+              padding: '0.65rem 1rem',
+              borderRadius: '8px',
+              border: '1px solid var(--border-color)',
+              backgroundColor: 'var(--search-bg)',
+              color: 'var(--text-primary)',
+              fontWeight: '600',
+              cursor: 'pointer',
+              fontSize: '0.9rem',
+              outline: 'none'
+            }}
+          >
+            <option value="ALL">All Departments ({employees.length})</option>
+            {departmentOptions.map(dept => {
+              const count = employees.filter(e => e.department?.toLowerCase() === dept.toLowerCase()).length;
+              return (
+                <option key={dept} value={dept}>
+                  {dept} ({count})
+                </option>
+              );
+            })}
+          </select>
         </div>
       </div>
 

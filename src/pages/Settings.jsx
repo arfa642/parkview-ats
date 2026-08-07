@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { MdSave, MdCheckCircle, MdErrorOutline, MdDns, MdVpnKey, MdPerson } from 'react-icons/md';
+import { MdSave, MdCheckCircle, MdErrorOutline, MdDns, MdVpnKey, MdPerson, MdList, MdStorage } from 'react-icons/md';
+import PredefinedListsSettings from '../components/PredefinedListsSettings';
 
 const API_BASE_URL = `http://${window.location.hostname}:5000/api`;
 
@@ -15,6 +16,7 @@ export default function Settings() {
   const [status, setStatus] = useState({ type: '', message: '' });
   const [loading, setLoading] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
+  const [activeTab, setActiveTab] = useState('lists'); // 'db' or 'lists'
 
   useEffect(() => {
     fetchStatus();
@@ -180,17 +182,65 @@ export default function Settings() {
         `}
       </style>
 
-      <div style={{ padding: '1.5rem 1.5rem 0', maxWidth: '800px', margin: '0 auto', flexShrink: 0 }}>
+      <div style={{ padding: '1.5rem 1.5rem 0', maxWidth: '900px', margin: '0 auto', flexShrink: 0, width: '100%' }}>
         <h1 style={{ fontSize: '1.75rem', fontWeight: '700', color: 'var(--text-primary)', margin: '0 0 0.5rem 0' }}>
-          Database Settings
+          System Settings
         </h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', lineHeight: '1.4', margin: 0 }}>
-          Configure your SQL Server connection details below. These settings will be applied immediately to the backend server.
+        <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', lineHeight: '1.4', margin: '0 0 1.5rem 0' }}>
+          Manage your system predefined lists, categories, departments, and database configurations.
         </p>
+
+        {/* Main Tab Navigation */}
+        <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+          <button
+            type="button"
+            onClick={() => setActiveTab('lists')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              padding: '0.6rem 1.2rem',
+              borderRadius: '8px',
+              border: 'none',
+              backgroundColor: activeTab === 'lists' ? 'var(--accent-color)' : 'transparent',
+              color: activeTab === 'lists' ? '#000' : 'var(--text-secondary)',
+              fontWeight: '600',
+              cursor: 'pointer',
+              fontSize: '0.95rem'
+            }}
+          >
+            <MdList size={20} />
+            📋 Predefined Lists Manager
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('db')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              padding: '0.6rem 1.2rem',
+              borderRadius: '8px',
+              border: 'none',
+              backgroundColor: activeTab === 'db' ? 'var(--accent-color)' : 'transparent',
+              color: activeTab === 'db' ? '#000' : 'var(--text-secondary)',
+              fontWeight: '600',
+              cursor: 'pointer',
+              fontSize: '0.95rem'
+            }}
+          >
+            <MdStorage size={20} />
+            🗄️ Database Connection
+          </button>
+        </div>
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem' }}>
-        <div className="settings-card" style={{ maxWidth: '800px', margin: '0 auto' }}>
+        <div className="settings-card" style={{ maxWidth: '900px', margin: '0 auto' }}>
+          {activeTab === 'lists' ? (
+            <PredefinedListsSettings />
+          ) : (
+            <>
           
           {/* Connection Status Banner */}
           <div className={`status-banner ${isConnected ? 'success' : 'error'}`}>
@@ -322,6 +372,8 @@ export default function Settings() {
             {loading ? 'Connecting...' : <><MdSave size={22} /> Test & Save Connection</>}
           </button>
         </form>
+        </>
+        )}
         </div>
       </div>
     </div>

@@ -42,7 +42,7 @@ async function fixCategories() {
             }
 
             console.log(`Updating asset ${asset.tag}: Name '${asset.name}' -> Category '${newCategory}'`);
-            
+
             await connection.query(
                 'UPDATE assets SET name = ? WHERE id = ?',
                 [newCategory, asset.id]
@@ -53,25 +53,25 @@ async function fixCategories() {
         const [assignments] = await connection.query('SELECT * FROM assignments');
         for (const assign of assignments) {
             const [matchedAssets] = await connection.query('SELECT name FROM assets WHERE tag = ?', [assign.assetTag]);
-            if(matchedAssets.length > 0) {
-               // assignments table doesn't have assetName, wait, the schema says:
-               // assignments: id, asset_id, employee_id, assignedBy, date, status (No assetName)
+            if (matchedAssets.length > 0) {
+                // assignments table doesn't have assetName, wait, the schema says:
+                // assignments: id, asset_id, employee_id, assignedBy, date, status (No assetName)
             }
         }
 
         const [transfers] = await connection.query('SELECT * FROM transfers');
         for (const tr of transfers) {
             const [matchedAssets] = await connection.query('SELECT name FROM assets WHERE tag = ?', [tr.assetTag]);
-            if(matchedAssets.length > 0) {
-               await connection.query('UPDATE transfers SET assetName = ? WHERE id = ?', [matchedAssets[0].name, tr.id]);
+            if (matchedAssets.length > 0) {
+                await connection.query('UPDATE transfers SET assetName = ? WHERE id = ?', [matchedAssets[0].name, tr.id]);
             }
         }
 
         const [returns] = await connection.query('SELECT * FROM `returns`');
         for (const rt of returns) {
             const [matchedAssets] = await connection.query('SELECT name FROM assets WHERE tag = ?', [rt.assetTag]);
-            if(matchedAssets.length > 0) {
-               await connection.query('UPDATE `returns` SET assetName = ? WHERE id = ?', [matchedAssets[0].name, rt.id]);
+            if (matchedAssets.length > 0) {
+                await connection.query('UPDATE `returns` SET assetName = ? WHERE id = ?', [matchedAssets[0].name, rt.id]);
             }
         }
 
